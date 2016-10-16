@@ -11,4 +11,4 @@ gobgp neighbor add 192.168.0.71 as 65000
 gobgp global policy export add default-accept default reject
 
 # this is deadly slow
-gobgp mrt inject global rib.20161015.0600
+gobgp mrt inject global $*
