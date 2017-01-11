@@ -23,6 +23,7 @@ func main() {
 		Config: config.GlobalConfig{
 			As:       65001, // Update accordingly here
 			RouterId: "192.168.0.64",
+			Port:     -1,
 		},
 	}
 
