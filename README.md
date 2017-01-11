@@ -14,7 +14,7 @@ A event driven BGPd which accepts KONAMI command (↑↑↓↓←→←→BA) in
 
 ### How to play
 
-In OSX El Capitan,
+In OSX,
 
 #### Start kafka
 
@@ -46,18 +46,19 @@ Let's say the sandbox enviroment looks like this:
 
 1. Build and Start bgpd
    ```zsh
+   go get github.com/Shopify/sarama
    cd bgpd
    go build .   # requires GoBGP
-   sudo bgpd &  # assumes no password prompt
+   bgpd &       # assumes no password prompt
    ```
 
 2. Download MRT and configure bgpd
 
    Download MRT table dump from [Route View Archive](http://archive.routeviews.org/) for example.
    ```zsh
-   curl -O http://archive.routeviews.org/route-views.wide/bgpdata/2016.10/RIBS/rib.20161016.0800.bz2
-   bunzip2 rib.20161016.0800.bz2
-   ./config.sh rib.20161016.0800  # this will take a while
+   curl -O http://archive.routeviews.org/route-views.wide/bgpdata/2017.01/RIBS/rib.20170101.0200.bz2
+   bunzip2 rib.20170101.0200.bz2
+   ./config.sh rib.20170101.0200  # this will take a while
    ```
 
 #### KONAMI Command subscriber
@@ -68,13 +69,14 @@ Install gRPC and Ruby libraries in advance. (See [GoBGP doc](https://github.com/
    ```zsh
    cd ../konami
    GOBGP_API=$GOPATH/src/github.com/osrg/gobgp/api
-   protoc  -I $GOBGP_API --ruby_out=. --grpc_out=. --plugin=protoc-gen-grpc=`which grpc_ruby_plugin` $GOBGP_API/gobgp.proto
+   grpc_tools_ruby_protoc -I $GOBGP_API --ruby_out=. --grpc_out=. $GOBGP_API/gobgp.proto
    ```
 
    You can find ```gobgp_pb.rb``` and ```gobgp_services_pb.rb``` now.
 
 2. Start Consumer
    ```zsh
+   gem install ruby-kafla grpc
    ruby subscriber.rb &
    ```
 
@@ -84,12 +86,12 @@ In other system,
 
 ```
 git clone https://github.com/codeout/event-driven-bgpd.git
-cd konami_client
+cd event-driven-bgpd/konami_client
 ```
 
 1. Start Client
    ```zsh
-   sudo gobgpd -f gobgpd.conf &  # assumes no password prompt
+   sudo gobgpd -f gobgpd.conf
    ```
 
    You can see a route received after BGP peer is established.
@@ -111,3 +113,9 @@ cd konami_client
    Peer            AS  Up/Down State       |#Advertised Received Accepted
 192.168.0.64 65001 00:00:34 Establ      |          0   612259   612259
    ```
+
+### Message Example
+
+```json
+{"type":"best_path","value":{"nlri":{"prefix":"10.0.0.0/8"},"attrs":[{"type":1,"value":2},{"type":2,"as_paths":[{"segment_type":2,"num":1,"asns":[65000]}]},{"type":3,"nexthop":"192.168.0.71"}],"age":1476773724,"source-id":"192.168.0.71","neighbor-ip":"192.168.0.71"}}
+```
